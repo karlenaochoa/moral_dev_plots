@@ -1,0 +1,98 @@
+---
+title: "Study2_manuscript_plots"
+author: "Karlena Ochoa"
+date: "8/19/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(janitor)
+library(rio)
+library(magrittr)
+library(here)
+library(kableExtra)
+library(car)
+library(lsmeans)
+library(Hmisc)
+library(corrplot)
+library(gt)
+library(lsmeans)
+library(sjstats)
+library(viridis)
+library(colorblindr)
+library(ggpubr)
+
+code_story_data <- import(here("data", "code_story_data.csv")) 
+
+code_story_data <- code_story_data %>% 
+              mutate(name_fb_group = ifelse(passfb == 0 , "FB Fail",
+                  ifelse(passfb == 1 & age_group.x == "4", "4 YO Pass",
+                  ifelse(passfb == 1 & age_group.x == "5", "5 YO Pass", 
+                  ifelse(passfb == 1 & age_group.x == "adult", "Adult Pass", "x"))))) 
+
+code_story_data$name_fb_group<- factor(code_story_data$name_fb_group, levels=c("FB Fail", "4 YO Pass", "5 YO Pass", "Adult Pass"))
+
+```
+
+# Intent s2
+```{r intent s2}
+agent_intent_s2 <- code_story_data %>%
+  ggplot(aes(x = name_fb_group, y = intent_mean, fill = condition_motive.x)) +
+    geom_boxplot(alpha = 0.6) +
+    geom_point(position = position_jitterdodge(), size = 1.5, alpha = 0.6) +
+    stat_summary(fun = mean, geom ="point", aes(group = condition_motive.x), position = position_dodge(.7), color = "black", size = 3.5, shape = 17) +
+    scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+    geom_hline(yintercept = 0) +
+    ylim(-1, 1) +
+    labs(x = "",
+       y = "Intent rating", 
+       fill = " Intent Condition") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = (14)),
+                  axis.text = element_text(size = (14)),
+            legend.text = element_text(size = (14)),
+            legend.title = element_text(size = (16))) +
+  theme(plot.margin = margin(t = 12, unit = "pt"))
+
+```
+
+#Conseq s2
+```{r conseq s2}
+agent_conseq_s2 <- code_story_data %>%
+ggplot(aes(x = name_fb_group, y = conseq_mean, fill = condition_motive.x)) +
+geom_boxplot(alpha = 0.6) +
+  geom_point(position = position_jitterdodge(), size = 1.5, alpha = 0.6) +
+  stat_summary(fun = mean, geom ="point", aes(group = condition_motive.x), position = position_dodge(.7), color = "black", size = 3, shape = 17) +
+  scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+  geom_hline(yintercept = 0) +
+  ylim(-1, 1) + 
+  labs(x = "",
+       y = "Consequence rating", 
+       fill = " Intent Condition") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = (14)),
+                  axis.text = element_text(size = (14)),
+            legend.text = element_text(size = (14)),
+            legend.title = element_text(size = (16))) +
+  theme(plot.margin = margin(t = 12, unit = "pt"))
+```
+
+
+```{r}
+ggarrange(agent_intent_s2 + rremove("x.text"), agent_conseq_s2 ,
+           labels = c("A.", "B."),
+          common.legend = TRUE, legend = "bottom",
+           ncol = 1, nrow = 2)
+```
+
+
+
+
+
+```
+
+

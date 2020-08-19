@@ -1,0 +1,189 @@
+---
+title: "study1_plots"
+author: "Karlena Ochoa"
+date: "8/19/2020"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(janitor)
+library(rio)
+library(magrittr)
+library(here)
+library(kableExtra)
+library(car)
+library(lsmeans)
+library(Hmisc)
+library(corrplot)
+library(gt)
+library(lsmeans)
+library(sjstats)
+library(viridis)
+library(colorblindr)
+library(ggpubr)
+
+df64 <- import(here("data", "FYP64_Rodini_data.csv")) %>% 
+  clean_names()
+        
+df <- df64 %>% 
+      select(id, fb_categories, age_yr, cond_valence, tb_intention_average, tb_judgment_average, tb_consequence_average,
+             fb_intention_average, fb_judgment_average, fb_consequence_average) %>% 
+              mutate(name_fb_group = ifelse(fb_categories == 0 , "FB Fail",
+                  ifelse(fb_categories == 1 , "4 YO Pass",
+                  ifelse(fb_categories == 2, "5 YO Pass", "x")))) %>% 
+              mutate(condition_motive = ifelse(cond_valence == 0 , "Good",
+                  ifelse(cond_valence == 1, "Bad", "x")))
+
+df$name_fb_group<- factor(df$name_fb_group, levels=c("FB Fail", "4 YO Pass", "5 YO Pass"))
+```
+
+
+```{r create composite score on intent/evaluation}
+
+df <- df %>% 
+  mutate(fb_intent_comp = ((fb_intention_average + fb_judgment_average)/2)) %>% 
+  mutate(tb_intent_comp = ((tb_intention_average + tb_judgment_average)/2))
+
+```
+
+
+# false belief dot plot for intent composite 
+```{r}
+
+fb_dot <- df %>%
+ggplot(aes(x = name_fb_group, y = fb_intent_comp, fill = condition_motive)) +
+geom_boxplot(alpha = 0.6) +
+    geom_point(position = position_jitterdodge(), size = 1.5, alpha = 0.6) +
+    stat_summary(fun = mean, geom ="point", aes(group = condition_motive), position = position_dodge(.7), color = "black", size = 3.5, shape = 17) +
+    scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+    geom_hline(yintercept = 0) +
+    ylim(-1, 1) +
+    labs(x = "",
+       y = "Intent rating", 
+       fill = " Intent Condition") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = (14)),
+                  axis.text = element_text(size = (14)),
+            legend.text = element_text(size = (14)),
+            legend.title = element_text(size = (16)))
+fb_dot
+
+```
+
+
+
+# TB dot plot - intent comp 
+
+```{r}
+tb_dot <- df %>%
+ggplot(aes(x = name_fb_group, y = tb_intent_comp, fill = condition_motive)) +
+geom_boxplot(alpha = 0.6) +
+    geom_point(position = position_jitterdodge(), size = 1.5, alpha = 0.6) +
+    stat_summary(fun = mean, geom ="point", aes(group = condition_motive), position = position_dodge(.7), color = "black", size = 3.5, shape = 17) +
+    scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+    geom_hline(yintercept = 0) +
+    ylim(-1, 1) +
+    labs(x = "",
+       y = "Intent rating", 
+       fill = " Intent Condition") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = (14)),
+                  axis.text = element_text(size = (14)),
+            legend.text = element_text(size = (14)),
+            legend.title = element_text(size = (16)))
+
+tb_dot 
+
+ggarrange(tb_dot + rremove("x.text"), fb_dot,
+           labels = c("A. True Belief", "B. False Belief"), hjust = -.7,
+          common.legend = TRUE, legend = "bottom",
+           ncol = 1, nrow = 2)
+```
+
+
+
+# true belief dot plot for conseq Q for study 1 
+
+tb_consequence avergae 
+```{r}
+con_tb_dot <- df %>%
+ggplot(aes(x = name_fb_group, y = tb_consequence_average, fill = condition_motive)) + geom_boxplot(alpha = 0.6) +
+    geom_point(position = position_jitterdodge(), size = 1.5, alpha = 0.6) +
+    stat_summary(fun = mean, geom ="point", aes(group = condition_motive), position = position_dodge(.7), color = "black", size = 3.5, shape = 17) +
+    scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+    geom_hline(yintercept = 0) +
+    ylim(-1, 1) +
+    labs(x = "",
+       y = "Consequence Rating", 
+       fill = " Intent Condition") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = (14)),
+                  axis.text = element_text(size = (14)),
+            legend.text = element_text(size = (14)),
+            legend.title = element_text(size = (16))) +
+  theme(plot.margin = margin(t = 12, unit = "pt"))
+
+con_tb_dot
+
+
+```
+
+
+# false belief dot plot for conseq Q for study 1 
+
+fb_consequence avergage
+```{r}
+con_fb_dot <- df %>%
+ggplot(aes(x = name_fb_group, y = fb_consequence_average, fill = condition_motive)) +
+  geom_boxplot(alpha = 0.6) +
+    geom_point(position = position_jitterdodge(), size = 1.5, alpha = 0.6) +
+    stat_summary(fun = mean, geom ="point", aes(group = condition_motive), position = position_dodge(.7), color = "black", size = 3.5, shape = 17) +
+    scale_fill_viridis(discrete = TRUE, alpha = 0.6) +
+    geom_hline(yintercept = 0) +
+    ylim(-1, 1) +
+    labs(x = "",
+       y = "Consequence Rating", 
+       fill = " Intent Condition") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = (14)),
+                  axis.text = element_text(size = (14)),
+            legend.text = element_text(size = (14)),
+            legend.title = element_text(size = (16))) +
+  theme(plot.margin = margin(t = 12, unit = "pt"))
+
+con_fb_dot
+
+
+```
+
+TB and FB conseq study 1 
+```{r}
+ggarrange(con_tb_dot + rremove("x.text"), con_fb_dot,
+           labels = c("A. True Belief", "B. False Belief"), hjust = -.5,
+          common.legend = TRUE, legend = "bottom",
+           ncol = 1, nrow = 2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
